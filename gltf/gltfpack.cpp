@@ -666,7 +666,12 @@ static void process(cgltf_data* data, const char* input_path, const char* output
 				{
 					ni.mesh_nodes.push_back(node_offset);
 
-					writeMeshNode(json_nodes, mesh_offset, mesh.nodes[j], mesh.skin, data, settings.quantize && !settings.pos_float ? &qp : NULL);
+					QuantizationPosition qp_ = qp;
+					qp_.offset[0] += settings.offset[0];
+					qp_.offset[1] += settings.offset[1];
+					qp_.offset[2] += settings.offset[2];
+
+					writeMeshNode(json_nodes, mesh_offset, mesh.nodes[j], mesh.skin, data, settings.quantize && !settings.pos_float ? &qp_ : NULL);
 
 					node_offset++;
 				}
@@ -691,7 +696,12 @@ static void process(cgltf_data* data, const char* input_path, const char* output
 			comma(json_roots[mesh.scene]);
 			append(json_roots[mesh.scene], node_offset);
 
-			writeMeshNode(json_nodes, mesh_offset, NULL, mesh.skin, data, settings.quantize && !settings.pos_float ? &qp : NULL);
+			QuantizationPosition qp_ = qp;
+			qp_.offset[0] += settings.offset[0];
+			qp_.offset[1] += settings.offset[1];
+			qp_.offset[2] += settings.offset[2];
+
+			writeMeshNode(json_nodes, mesh_offset, NULL, mesh.skin, data, settings.quantize && !settings.pos_float ? &qp_ : NULL);
 
 			node_offset++;
 		}
@@ -1121,6 +1131,9 @@ Settings defaults()
 	settings.scl_bits = 16;
 	settings.anim_freq = 30;
 	settings.simplify_threshold = 1.f;
+	settings.offset[0] = 0;
+	settings.offset[1] = 0;
+	settings.offset[2] = 0;
 	settings.texture_scale = 1.f;
 	for (int kind = 0; kind < TextureKind__Count; ++kind)
 		settings.texture_quality[kind] = 8;
@@ -1362,6 +1375,12 @@ int main(int argc, char** argv)
 			settings.compress = true;
 			settings.fallback = true;
 		}
+		else if (strcmp(arg, "-of") == 0 && i + 3 < argc)
+		{
+            settings.offset[0] = float(atof(argv[++i]));
+            settings.offset[1] = float(atof(argv[++i]));
+            settings.offset[2] = float(atof(argv[++i]));
+        }
 		else if (strcmp(arg, "-v") == 0)
 		{
 			settings.verbose = 1;

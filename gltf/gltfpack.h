@@ -151,6 +151,8 @@ struct Settings
 	bool compressmore;
 	bool fallback;
 
+	float offset[3];
+
 	int verbose;
 };
 
